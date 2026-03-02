@@ -1,0 +1,60 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Pagos";
+}
+
+<h2>Crear Pago</h2>
+
+<form method="post" asp-page-handler="Crear">
+    <button type="submit">Crear Pago Test</button>
+</form>
+
+<hr/>
+<h2>Listado de Pagos</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Monto</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pago in Model.Pagos)
+        {
+            <tr>
+                <td>@pago.Id</td>
+                <td>@pago.Monto</td>
+                <td>@pago.Estado</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<form method="post" asp-page-handler="Crear">
+     <button type="submit">
+Crear Pago</button>
+</form>
+
+<hr />
+
+@if (!string.IsNullOrEmpty(Model.QrImageUrl))
+{
+    <h3>QR generado</h3>
+
+    <img src="@Model.QrImageUrl" width="250"/>
+
+    <p>
+        Estado: @Model.Pagos.LastOrDefault()?.Estado
+    </p>
+    
+}
+
+@* <div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+ *@

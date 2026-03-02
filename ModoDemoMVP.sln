@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModoDemoMVP", "ModoDemoMVP.csproj", "{319EC1B5-5A1F-46DB-B35B-AB2E99F1812E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{319EC1B5-5A1F-46DB-B35B-AB2E99F1812E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{319EC1B5-5A1F-46DB-B35B-AB2E99F1812E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{319EC1B5-5A1F-46DB-B35B-AB2E99F1812E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{319EC1B5-5A1F-46DB-B35B-AB2E99F1812E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5C864662-E45E-4B7D-8E30-41443614C8C9}
+	EndGlobalSection
+EndGlobal
