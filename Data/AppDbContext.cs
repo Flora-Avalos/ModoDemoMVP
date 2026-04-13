@@ -10,5 +10,13 @@ namespace ModoDemoMVP.Data
             : base(options) { }
         public DbSet<Pago> Pagos => Set<Pago>();
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Pago>()
+                .Property(p => p.Monto)
+                .HasPrecision(18, 2);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

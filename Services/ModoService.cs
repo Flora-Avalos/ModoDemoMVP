@@ -28,16 +28,23 @@ namespace ModoDemoMVP.Services
                 return _accessToken; // retornar token cacheado si no ha expirado
             }
 
-            var request = new ModoTokenRequest
+            var body = new
             {
-                Username = _config["PLAYDIGITAL SA-318979-preprod"]!,
-                Password = _config["318979-P75V/QLKfVKX"]!
+                Username = _config["Modo:Username"]!,
+                Password = _config["Modo:Password"]!
             };
 
-            var response = await _httpClient.PostAsJsonAsync(
-                "/v2/stores/companies/token", request);
+            var httpRequest = new HttpRequestMessage(
+                HttpMethod.Post,
+                "/v2/stores/companies/token");
 
-            if (!response.IsSuccessStatusCode)
+            httpRequest.Content = JsonContent.Create(body);
+
+            httpRequest.Headers.Add("User-Agent", _config["Modo:UserAgent"]);
+
+            var response = await _httpClient.SendAsync(httpRequest);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
             {
                 var error = await response.Content.ReadAsStringAsync();
                 throw new Exception($"Error obteniendo token: {error}");
@@ -52,56 +59,41 @@ namespace ModoDemoMVP.Services
             return _accessToken;
         }
 
-        // Crear Payment Request (simulacion con credenciales genericas)
-        public async Task<ModoPagoResponse> CrearPagoAsync(decimal monto, string externalReference)
+        public async Task<ModoPagoResponse> CrearPagoAsync(string externalId, decimal monto)
         {
-            ////obtener token
-            //var token = await ObtenerTokenAsync();
+            var token = await ObtenerTokenAsync();
 
-            ////preparar request
-            //var paymentRequest = new ModoPaymentRequest
-            //{
-            //    Description = "Compra de prueba",
-            //    Amount = monto,
-            //    Currency = "ARS",
-            //    CcCode = "1CSI",
-            //    ProcessorCode = "P1019", 
-            //    ExternalIntentionId = externalReference
-            //};
-
-            ////simulacion de llamada a modo (reemplazar con llamada real a la API de modo)
-            //await Task.Delay(300);
-
-            //return new ModoPagoResponse
-            //{
-            //    PaymentId = Guid.NewGuid().ToString(),
-            //    QrData = "Simulated QR Data" + Guid.NewGuid(),
-            //    PaymentLink = "https://modo.com/simulated-payment-link" + Guid.NewGuid(),
-            //    Status = "Pendiente"
-            //};
-
-            //se va a generar un QR de prueba con datos simulados, ya que no tenemos acceso a la API real de Modo en este entorno
-            await Task.Delay(200); 
-
-            var paymentId = Guid.NewGuid().ToString();
-            var externalIntentionId = Guid.NewGuid().ToString();
-
-            //datos q contendra el qr
-            var qrContent = $"PAGO|ID:{paymentId}|AMOUNT:{monto}";
-
-
-            var qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={Uri.EscapeDataString(qrContent)}";
-
-            return new ModoPagoResponse
+            var body = new
             {
-                PaymentId = paymentId,
-                ExternalIntentionId = externalIntentionId,
-                QrData = qrUrl,
-                PaymentLink = $"https://modo.com/simulated-payment-link",
-                Status = "Pendiente"
-
-
+                description = "Pago desde MVP",
+                amount = monto,
+                currency = "ARS",
+                cc_code = "1CSI",
+                processor_code = _config["Modo:ProcessorCode"],
+                external_intention_id = externalId,
+                webhook_notification_id  = _config["Modo:WebhookUrl"]
             };
+
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
+                "/v2/payment-requests/");
+
+            request.Content = JsonContent.Create(body);
+
+            request.Headers.Add("Authorization", $"Bearer {token}");
+            request.Headers.Add("User-Agent", _config["Modo:UserAgent"]);
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Error creando pago: {error}");
+            }
+
+            var pagoResponse = await response.Content.ReadFromJsonAsync<ModoPagoResponse>();
+
+            return pagoResponse!;
 
         }
     }

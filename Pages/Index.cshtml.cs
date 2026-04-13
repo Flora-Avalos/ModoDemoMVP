@@ -33,7 +33,7 @@ namespace ModoDemoMVP.Pages
             {
                 Monto = 1000,
                 Estado = "Pendiente",
-                FechaCreacion = DateTime.Now,
+                FechaCreacion = DateTime.UtcNow,
                 ExternalReference = Guid.NewGuid().ToString() // referencia unica para correlacionar pagos local y externo
             };
 
@@ -43,26 +43,26 @@ namespace ModoDemoMVP.Pages
             try
             {
                 var modoResponse = await _modoService
-                     .CrearPagoAsync(pago.Monto, pago.ExternalReference!);
+                     .CrearPagoAsync(pago.ExternalReference!,pago.Monto );
 
-                Console.WriteLine("PaymentLink: " + modoResponse.PaymentLink);
-                Console.WriteLine("QrData: " + modoResponse.QrData);
-                Console.WriteLine("Status:" + modoResponse.Status);
+                Console.WriteLine("Deeplik: " + modoResponse.Deeplink);
+                Console.WriteLine("Qr: " + modoResponse.Qr);
+                //Console.WriteLine("Status:" + modoResponse.Status);
                 
-                //simulacion por ahora
-                pago.ModoPaymentId = modoResponse.PaymentId;
-                pago.QrData = modoResponse.QrData;
-                pago.PaymentLink = modoResponse.PaymentLink;
-                pago.Estado = modoResponse.Status;
-                pago.FechaActualizacion = DateTime.Now;
+                //guardar datos de MODO
+                pago.ModoPaymentId = modoResponse.Id;
+                pago.QrData = modoResponse.Qr;
+                pago.PaymentLink = modoResponse.Deeplink;
+                pago.Estado = "Pendiente";
+                pago.FechaActualizacion = DateTime.UtcNow;
 
-                QrImageUrl = modoResponse.QrData;
-                PaymentLink = modoResponse.PaymentLink;
+                QrImageUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={Uri.EscapeDataString(modoResponse.Qr)}";
+                PaymentLink = modoResponse.Deeplink;
             }
             catch (Exception ex)
             {
                 pago.Estado = "Error: " + ex.Message;
-                pago.FechaActualizacion = DateTime.Now;
+                pago.FechaActualizacion = DateTime.UtcNow;
                 
             }
 

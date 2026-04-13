@@ -4,7 +4,7 @@
     ViewData["Title"] = "Pagos";
 }
 
-<h2>Crear Pago</h2>
+<h2>Crear Compra</h2>
 
 <form method="post" asp-page-handler="Crear">
     <button type="submit">Crear Pago Test</button>
@@ -52,6 +52,60 @@ Crear Pago</button>
     </p>
     
 }
+
+<script src="https://ecommerce-modal.preprod.modo.com.ar/bundle.js"></script>
+
+<script>
+    async function createPaymentIntention(){
+        const res = await fetch('http://localhost:8080/api/pagos/crear', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({monto: 1000 })
+            });
+
+        const jsonRes = await res.json();
+        console.log("Respuesta api:", jsonRes);
+
+        return {
+          checkoutId: jsonRes.id,
+          qrString: jsonRes.qr,
+          deeplink: jsonRes.deeplink,
+        };
+    }
+
+     async function showModal() {
+
+        const modalData = await createPaymentIntention();
+
+        console.log("model data:",modalData);
+        
+        var modalObject = {
+            version: '2',
+            environment: 'PREPROD',
+            qrString: modalData.qrString,
+            checkoutId: modalData.checkoutId,
+            deeplink:  {
+                url: modalData.deeplink,
+               // callbackURL: 'https://tiendadeprueba.com/checkout',
+                //callbackURLSuccess: 'https://tiendadeprueba/thankyou',
+            },
+            callbackURL: 'http://localhost:8080/checkout',
+   
+            refreshData: createPaymentIntention,
+
+            onSuccess: function () { console.log('onSuccess') },
+            onFailure: function () { console.log('onFailure') },
+            onCancel: function () { console.log('onCancel') },
+            onClose: function () { console.log('onClose') },
+        }
+
+        ModoSDK.modoInitPayment(modalObject);
+    }
+</script>
+
+<button onclick="showModal()">Pagá con MODO></button>
 
 @* <div class="text-center">
     <h1 class="display-4">Welcome</h1>

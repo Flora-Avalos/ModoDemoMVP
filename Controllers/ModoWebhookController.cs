@@ -6,7 +6,7 @@ using ModoDemoMVP.DTOs;
 namespace ModoDemoMVP.Controller
 {
     [ApiController]
-    [Route("api/webhooks/modo")]
+    [Route("api/webhook/modo")]
     public class ModoWebhookController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -19,6 +19,7 @@ namespace ModoDemoMVP.Controller
         [HttpPost]
         public async Task<IActionResult> RecibirWebhook([FromBody] ModoWebhookNotification notification) 
         {
+            Console.WriteLine($"Webhook recibido: PaymentId={notification.PaymentId}, ExternalIntentionId={notification.ExternalIntentionId}, Status={notification.Status}");
 
             var pago = await _context.Pagos
                 .FirstOrDefaultAsync(p => 
@@ -26,6 +27,28 @@ namespace ModoDemoMVP.Controller
 
             if (pago == null)
                 return Ok();
+
+            switch (notification.Status)
+            {
+                case "SCANNED":
+                    Console.WriteLine("QR escaneado");
+                    break;
+
+                case "PROCESSING":
+                    Console.WriteLine("Pago en proceso");
+                    pago.Estado = "En proceso";
+                    break;
+
+                case "ACCEPTED":
+                    Console.WriteLine("Pago aprobado");
+                    pago.Estado = "Aprobado";
+                    break;
+
+                case "REJECTED":
+                    Console.WriteLine("Pago rechazado");
+                    pago.Estado = "Rechazado";
+                    break;
+            }
 
             pago.Estado = notification.Status;
             pago.FechaActualizacion = DateTime.UtcNow;

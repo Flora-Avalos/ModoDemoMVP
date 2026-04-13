@@ -1,52 +1,81 @@
-
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using ModoDemoMVP.Data;
 using ModoDemoMVP.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+// Puerto
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-// Add services to the container.
+// Servicios
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<AppDbContext>(options => 
-     options.UseSqlServer(
-         builder.Configuration.GetConnectionString("DefaultConnection")));
+// PostgreSQL (Npgsql)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//builder.Services.AddHttpClient<ModoService>();
+// HttpClient para Modo
 builder.Services.AddHttpClient<ModoService>((sp, client) =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-
     client.BaseAddress = new Uri(config["Modo:BaseUrl"]!);
+    client.DefaultRequestHeaders.Add("User-Agent", config["Modo:UserAgent"]!);
+});
 
-    client.DefaultRequestHeaders.Add(
-        "User-Agent",
-        config["Modo:UserAgent"]!);
+builder.Services.AddHttpClient<ModoKeysService>((sp, client) =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", "ModoDemoMVP");
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//aplicar migraciones automatica
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
+//cargar jwks de modo al iniciar la app
+using (var scope = app.Services.CreateScope())
+{
+    var modoKeysService = scope.ServiceProvider.GetRequiredService<ModoKeysService>();
+    await modoKeysService.LoadKeysAsync();                                      
+}
+
+// Middleware para manejo de errores
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler("/error");
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Endpoint /error que muestra detalles de la excepción (útil temporalmente)
+app.Map("/error", (HttpContext context) =>
+{
+    var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+    return Results.Problem(title: "Error interno", detail: exception?.ToString());
+});
+
+// Middlewares
+// Desactivar HTTPS temporalmente si Render no tiene certificado
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
+// Endpoints
 app.MapRazorPages();
-
 app.MapControllers();
 
+// Endpoint de prueba rápido
+app.MapGet("/api/test", () => "ok");
 app.Run();

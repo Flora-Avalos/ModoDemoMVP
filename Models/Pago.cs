@@ -10,6 +10,6 @@
         public string? QrData { get; set; }
         public string? PaymentLink { get; set; }
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
-        public DateTime? FechaActualizacion { get; set; }
+        public DateTime? FechaActualizacion { get; set; } = DateTime.UtcNow;
     }
 }
