@@ -57,7 +57,8 @@ Crear Pago</button>
 
 <script>
     async function createPaymentIntention(){
-        const res = await fetch('http://localhost:8080/api/pagos/crear', {
+        //se cambia la ruta
+        const res = await fetch('/api/pagos/crear', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -91,7 +92,7 @@ Crear Pago</button>
                // callbackURL: 'https://tiendadeprueba.com/checkout',
                 //callbackURLSuccess: 'https://tiendadeprueba/thankyou',
             },
-            callbackURL: 'http://localhost:8080/checkout',
+            callbackURL: '/checkout',
    
             refreshData: createPaymentIntention,
 
